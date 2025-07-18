@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cassino do Leozão</title>
+  <style>
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #00ffff;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .money {
+      color: #ffdd57;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .win {
+      color: #4caf50;
+    }
+    .lose {
+      color: #f44336;
+    }
+    .jackpot {
+      color: #ffd700;
+      font-size: 1.4rem;
+      text-align: center;
+      margin-top: 2rem;
+      font-weight: 900;
+    }
+    input[type="number"] {
+      padding: 0.4rem;
+      font-size: 1rem;
+      width: 150px;
+      margin-right: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #00bcd4;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #0097a7;
+    }
+    #play-again {
+      margin-top: 1rem;
+      display: none;
+      background: #ff5722;
+    }
+    #message {
+      margin-top: 1rem;
+      min-height: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Cassino do Leozão</h1>
+  <div class="money" id="money">Seu dinheiro: R$ 100.00</div>
+
+  <label for="bet">Quanto deseja apostar? R$ </label>
+  <input type="number" id="bet" min="1" step="0.01" />
+  <button id="bet-button">Apostar</button>
+
+  <div id="message" class="result"></div>
+  <button id="play-again">Apostar novamente</button>
+
+  <script>
+    let dinheiro = 100.0;
+    let aposta = 0;
+    const moneyEl = document.getElementById('money');
+    const betInput = document.getElementById('bet');
+    const betButton = document.getElementById('bet-button');
+    const messageEl = document.getElementById('message');
+    const playAgainBtn = document.getElementById('play-again');
+
+    function atualizarDinheiro() {
+      moneyEl.textContent = `Seu dinheiro: R$ ${dinheiro.toFixed(2)}`;
+    }
+
+    function gerarRandomInt(max) {
+      return Math.floor(Math.random() * (max + 1)); // 0 a max inclusive
+    }
+
+    function mostrarMensagem(texto, classe) {
+      messageEl.textContent = texto;
+      messageEl.className = 'result ' + classe;
+    }
+
+    function resetJogo() {
+      betInput.value = '';
+      messageEl.textContent = '';
+      playAgainBtn.style.display = 'none';
+      betInput.disabled = false;
+      betButton.disabled = false;
+      betInput.focus();
+    }
+
+    function finalizarJogo() {
+      mostrarMensagem('Infelizmente você não tem mais dinheiro suficiente pra apostar, volte outra vez, SEU MERDA!', 'lose');
+      moneyEl.textContent = `Como ficou seu dindin: R$ ${dinheiro.toFixed(2)}`;
+      betInput.disabled = true;
+      betButton.disabled = true;
+      playAgainBtn.style.display = 'none';
+      const finalMsg = document.createElement('div');
+      finalMsg.innerHTML = '<strong style="color:#00ffff;">=== ATÉ A PRÓXIMA ===</strong>';
+      document.body.appendChild(finalMsg);
+    }
+
+    betButton.addEventListener('click', () => {
+      aposta = parseFloat(betInput.value);
+
+      if (isNaN(aposta)) {
+        mostrarMensagem('Por favor, insira um valor válido para a aposta.', 'lose');
+        return;
+      }
+
+      if (aposta > dinheiro) {
+        mostrarMensagem('Você não tem essa grana toda! Insira outro valor.', 'lose');
+        return;
+      }
+
+      if (aposta < 1) {
+        mostrarMensagem('A aposta mínima é de R$1.00, seu quebrado! Insira outro valor.', 'lose');
+        return;
+      }
+
+      // Processar resultado
+      const random = gerarRandomInt(10);
+      let resultado = 0;
+
+      switch(random) {
+        case 0:
+        case 5:
+          resultado = (aposta - aposta) - aposta; // perde tudo
+          break;
+        case 1:
+        case 2:
+          resultado = (aposta - (aposta / 2)) - aposta;
+          break;
+        case 3:
+        case 6:
+          resultado = (aposta - (aposta / 4)) - aposta;
+          break;
+        case 4:
+          resultado = (aposta - (aposta / 5)) - aposta;
+          break;
+        case 7:
+        case 8:
+          resultado = (aposta + (aposta / 2)) - aposta;
+          break;
+        case 9:
+          resultado = (aposta + (aposta / 4)) - aposta;
+          break;
+        case 10:
+          resultado = (aposta + aposta) - aposta;
+          break;
+      }
+
+      dinheiro = dinheiro + resultado;
+
+      let textoResultado = `Retorno: R$ ${(resultado + aposta).toFixed(2)}\nSeu dinheiro: R$ ${dinheiro.toFixed(2)}`;
+      let classe = '';
+      let mensagem = '';
+
+      if (random === 0) {
+        classe = 'lose';
+        mensagem = 'Hahaha, você se FUDEU! Perdeu tudo!';
+      } else if (random >= 1 && random <= 6) {
+        classe = 'lose';
+        mensagem = 'Você perdeu... que azar! Quem sabe da próxima vez!';
+      } else if (random >= 7 && random <= 9) {
+        classe = 'win';
+        mensagem = 'Você ganhou! Parabéns! Hoje é seu dia de sorte em...';
+      } else if (random === 10) {
+        classe = 'jackpot';
+        mensagem = 'JACKPOT!!! DOBROU SEU DINHEIRO!!! CONTINUE ASSIM!!!';
+      }
+
+      mostrarMensagem(`${textoResultado}\n${mensagem}`, classe);
+
+      atualizarDinheiro();
+
+      if (dinheiro <= 1) {
+        finalizarJogo();
+      } else {
+        // desabilita input e mostra botão para apostar de novo
+        betInput.disabled = true;
+        betButton.disabled = true;
+        playAgainBtn.style.display = 'inline-block';
+      }
+    });
+
+    playAgainBtn.addEventListener('click', () => {
+      resetJogo();
+    });
+
+    // Inicializa
+    atualizarDinheiro();
+    betInput.focus();
+  </script>
+</body>
+</html>
